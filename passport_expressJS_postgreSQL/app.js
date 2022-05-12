@@ -49,7 +49,7 @@ app.get("/register", (req, res) => {
   
   app.get("/login",(req, res) => {
     // flash sets a messages variable. passport sets the error message
-    
+
     res.render("login.ejs");
   });
 
@@ -61,8 +61,8 @@ app.post('/login', passport.authenticate('local',{
 }))
 
 
-
-app.post('/register', async(req,res) => {
+// localhost:4000/register
+app.post('/register', async (req,res) => {
     let {name, email, password} = req.body;
 
     console.log({
@@ -86,19 +86,27 @@ app.post('/register', async(req,res) => {
     }else{
 
     const hashedPass = await bcrypt.hash(password, 10);
+    
+    // pool.query('SELECT NOW()', (err, res) => {
+    //     console.log("good???")
+    //     console.log(res.rows)
+    // })
 
+    // console.log('bye --------')
+    
     pool.query(
         `SELECT * FROM users WHERE email = $1`,[email],
         (err, results) => {
+            console.log("========= hashed pass")
+            console.log(hashedPass)
             if (err){
-                throw err;
+                throw err
             }
-            console.log(results.rows);
 
             if(results.rows.length >0 ){
                 errors.push({message : "Email already existed"})
                 res.render("register.ejs", {errors})
-            }else{
+            } else {
                 pool.query(
                     `INSERT INTO users (name,email,password) VALUES ($1,$2,$3)
                     RETURNING id, password`, [name,email,hashedPass],
@@ -121,10 +129,12 @@ app.post('/register', async(req,res) => {
     
 })
 
-app.delete('/logout',(req,res) => {
+app.get('/logout',(req,res) => {
     req.logOut(),
 
     res.redirect("/login")
+
 })
+
 
 app.listen(4000)
